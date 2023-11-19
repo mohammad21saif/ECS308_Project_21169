@@ -29,7 +29,7 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 
 
 class classification():
-    def __init__(self, data_path, label_path, test_data_path, classifier='lsvc'):
+    def __init__(self, data_path, label_path, test_data_path, classifier='lr'):
         self.data_path = data_path
         self.label_path = label_path
         self.test_data_path = test_data_path
@@ -145,8 +145,8 @@ class classification():
         # ohe = OneHotEncoder()
         
         #imputation
-        imp = SimpleImputer(strategy='mean')
-        data[num_col] = imp.fit_transform(data[num_col])
+        # imp = SimpleImputer(strategy='mean')
+        # data[num_col] = imp.fit_transform(data[num_col])
         
         best =[] 
 
@@ -159,10 +159,20 @@ class classification():
             classifier_obj, classifier_param = self.classification_pipeline()
 
         #creating preprocessing steps
+            numeric_transformer = Pipeline(steps=[
+                ('imputer', SimpleImputer(strategy='mean')),  # Imputation for numerical data
+                ('scaler', RobustScaler())
+            ])
+
+            categorical_transformer = Pipeline(steps=[
+                # Imputation step removed for categorical data
+                ('onehot', OneHotEncoder(handle_unknown='ignore'))
+            ])
+
             preprocessor = ColumnTransformer(
                 transformers=[
-                    ('num', RobustScaler(), num_col),
-                    ('cat', OneHotEncoder(), cat_col)
+                    ('num', numeric_transformer, num_col),
+                    ('cat', categorical_transformer, cat_col)
                 ]
             )
 
@@ -210,7 +220,7 @@ class classification():
 
             #write results and best params to a file
             print('\n\n Writing results to file \n')
-            with open('results_lsvc.txt', 'a') as f:
+            with open('results_lr.txt', 'a') as f:
                 f.write('\n\n Classification Report \n')
                 f.write(classification_report(y_test, predicted))
 
@@ -240,23 +250,3 @@ class classification():
                 f.write('\n---------*************---------\n')
         f.close()
         print('\n\n Done \n')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-
- 
-        
-
