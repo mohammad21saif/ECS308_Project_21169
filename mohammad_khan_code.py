@@ -25,14 +25,15 @@ from imblearn.over_sampling import SMOTE, ADASYN
 from imblearn.pipeline import Pipeline
 from sklearn.feature_selection import SelectKBest, mutual_info_classif, f_classif
 from sklearn.model_selection import GridSearchCV, StratifiedKFold
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, classification_report
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, classification_report, make_scorer
 
 
 class classification():
-    def __init__(self, data_path, label_path, test_data_path, classifier='lr'):
+    def __init__(self, data_path, label_path, test_data_path, classifier='rf'):
         self.data_path = data_path
         self.label_path = label_path
         self.test_data_path = test_data_path
+        self.best_models = []
         self.classifier = classifier
         
     def classification_pipeline(self):
@@ -130,6 +131,26 @@ class classification():
         return data, labels
     
 
+    def find_best_model(self):
+        best_f1_score = -1
+        best_model = None
+        for f1_score, params, model in self.best_models:
+            if f1_score > best_f1_score:
+                best_f1_score = f1_score
+                best_model = model
+
+        return best_model
+    
+    def predict_test_data(self):
+        test_data = pd.read_csv(self.test_data_path)
+        best_model = self.find_best_model()
+        predictions = best_model.predict(test_data)
+        predictions_df = pd.DataFrame(predictions, columns=['Predictions'])
+        predictions_df.to_csv('test_predictions.csv', index=False)
+        
+        return predictions
+
+
     def classification(self):
         #Loading the data
         data, labels = self.data()
@@ -148,7 +169,6 @@ class classification():
         # imp = SimpleImputer(strategy='mean')
         # data[num_col] = imp.fit_transform(data[num_col])
         
-        best =[] 
 
         #Creating the pipeline
         skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
@@ -190,6 +210,10 @@ class classification():
             classifier = grid.best_estimator_
             predicted = classifier.predict(X_test)
 
+            f1 = f1_score(y_test, predicted, average='macro')
+            self.best_models.append((f1, grid.best_params_, grid.best_estimator_))
+
+
             print('\n\n Classification Report \n')
             print(classification_report(y_test, predicted))
 
@@ -213,14 +237,11 @@ class classification():
 
             print('\n\n Estimator \n')
             print(grid.best_estimator_)
-
-            print('\n\n Score \n')
-            print(grid.best_score_)
-            print('---------*************---------')
+            print('\n---------*************---------\n')
 
             #write results and best params to a file
             print('\n\n Writing results to file \n')
-            with open('results_lr.txt', 'a') as f:
+            with open('results_rf_1.txt', 'a') as f:
                 f.write('\n\n Classification Report \n')
                 f.write(classification_report(y_test, predicted))
 
@@ -244,9 +265,6 @@ class classification():
                 
                 f.write('\n\n Estimator \n')
                 f.write(str(grid.best_estimator_))
-                
-                f.write('\n\n Score \n')
-                f.write(str(grid.best_score_))
                 f.write('\n---------*************---------\n')
         f.close()
         print('\n\n Done \n')
