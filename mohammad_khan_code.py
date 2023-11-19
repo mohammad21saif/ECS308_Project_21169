@@ -146,7 +146,7 @@ class classification():
         best_model = self.find_best_model()
         predictions = best_model.predict(test_data)
         predictions_df = pd.DataFrame(predictions, columns=['Predictions'])
-        predictions_df.to_csv('test_predictions.csv', index=False)
+        predictions_df.to_csv('mohammad_khan_test_predictions.csv', index=False)
         
         return predictions
 
@@ -268,3 +268,5 @@ class classification():
                 f.write('\n---------*************---------\n')
         f.close()
         print('\n\n Done \n')
+        
+        
