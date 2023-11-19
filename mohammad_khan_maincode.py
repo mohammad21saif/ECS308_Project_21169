@@ -11,6 +11,6 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
-clf=classification('training_data.csv', 'training_data_targets.csv', 'test.csv' 'lsvc')
-clf.classification()
+classifier=classification('training_data.csv', 'training_data_targets.csv', 'test.csv' 'lsvc')
+classifier.classification()
 
